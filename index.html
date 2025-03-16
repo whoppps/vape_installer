@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vape V4 for Miniblox Installer</title>
+  <style>
+    /* Reset some defaults */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #2C3E50, #4CA1AF);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      padding: 2rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
+    }
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #3498DB;
+      color: #fff;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    button:hover {
+      background-color: #2980B9;
+      transform: scale(1.05);
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vape V4 for Miniblox</h1>
+    <p>Enhance your miniblox.io experience with Vape V4 by whoppps.</p>
+    <button id="installBtn">Install</button>
+  </div>
+
+  <script>
+    // When the Install button is clicked, create a Blob with the userscript
+    // and redirect to its URL to prompt a Tampermonkey/Violentmonkey install.
+    document.getElementById('installBtn').addEventListener('click', function() {
+      const scriptContent = `// ==UserScript==
+ // @name         Vape V4
+ // @namespace    https://github.com/whoppps
+ // @version      2024-07-29
+ // @description  A browser script made to give enhancements on miniblox.io
+ // @author       whoppps
+ // @match        https://miniblox.io/*
+ // @icon         https://miniblox.io/favicon.png
+ // @grant        GM_getValue
+ // @grant        GM_setValue
+ // @grant        unsafeWindow
+ // @run-at       document-start
+ // ==/UserScript==
+ 
+ (function() {
+ 	'use strict';
+ 
+ 	async function execute(url, oldScript) {
+ 		if (oldScript) oldScript.type = 'javascript/blocked';
+ 		let data = await fetch("https://raw.githubusercontent.com/whoppps/Vape-V4-For-Miniblox-Fixed/refs/tags/v1.8/injection.js").then(e => e.text());
+ 		if (oldScript) oldScript.type = 'module';
+ 		eval(data.replace("scripturl", url));
+ 	}
+ 
+ 	// https://stackoverflow.com/questions/22141205/intercept-and-alter-a-sites-javascript-using-greasemonkey
+ 	if(navigator.userAgent.indexOf("Firefox") != -1) {
+ 		window.addEventListener("beforescriptexecute", function(e) {
+ 			if(e.target.src.includes("https://miniblox.io/assets/index")) {
+ 				e.preventDefault();
+ 				e.stopPropagation();
+ 				execute(e.target.src);
+ 			}
+ 		}, false);
+ 	} else {
+ 		new MutationObserver(async (mutations, observer) => {
+ 			let oldScript = mutations
+ 				.flatMap(e => [...e.addedNodes])
+ 				.filter(e => e.tagName === 'SCRIPT')
+ 				.find(e => e.src.includes("https://miniblox.io/assets/index"));
+ 
+ 			if (oldScript) {
+ 				observer.disconnect();
+ 				execute(oldScript.src, oldScript);
+ 			}
+ 		}).observe(document, {
+ 			childList: true,
+ 			subtree: true,
+ 		});
+ 	}
+ })();`;
+
+      const blob = new Blob([scriptContent], { type: 'text/javascript' });
+      const url = URL.createObjectURL(blob);
+      window.location.href = url;
+    });
+  </script>
+</body>
+</html>
