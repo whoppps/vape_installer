@@ -71,60 +71,55 @@
     // and redirect to its URL to prompt a Tampermonkey/Violentmonkey install.
     document.getElementById('installBtn').addEventListener('click', function() {
       const scriptContent = `// ==UserScript==
- // @name         Vape V4
- // @namespace    https://github.com/whoppps
- // @version      2024-07-29
- // @description  A browser script made to give enhancements on miniblox.io
- // @author       whoppps
- // @match        https://miniblox.io/*
- // @icon         https://miniblox.io/favicon.png
- // @grant        GM_getValue
- // @grant        GM_setValue
- // @grant        unsafeWindow
- // @run-at       document-start
- // ==/UserScript==
- 
- (function() {
- 	'use strict';
- 
- 	async function execute(url, oldScript) {
- 		if (oldScript) oldScript.type = 'javascript/blocked';
- 		let data = await fetch("https://raw.githubusercontent.com/whoppps/Vape-V4-For-Miniblox-Fixed/refs/tags/v1.8/injection.js").then(e => e.text());
- 		if (oldScript) oldScript.type = 'module';
- 		eval(data.replace("scripturl", url));
- 	}
- 
- 	// https://stackoverflow.com/questions/22141205/intercept-and-alter-a-sites-javascript-using-greasemonkey
- 	if(navigator.userAgent.indexOf("Firefox") != -1) {
- 		window.addEventListener("beforescriptexecute", function(e) {
- 			if(e.target.src.includes("https://miniblox.io/assets/index")) {
- 				e.preventDefault();
- 				e.stopPropagation();
- 				execute(e.target.src);
- 			}
- 		}, false);
- 	} else {
- 		new MutationObserver(async (mutations, observer) => {
- 			let oldScript = mutations
- 				.flatMap(e => [...e.addedNodes])
- 				.filter(e => e.tagName === 'SCRIPT')
- 				.find(e => e.src.includes("https://miniblox.io/assets/index"));
- 
- 			if (oldScript) {
- 				observer.disconnect();
- 				execute(oldScript.src, oldScript);
- 			}
- 		}).observe(document, {
- 			childList: true,
- 			subtree: true,
- 		});
- 	}
- })();`;
+// @name         Vape V4
+// @namespace    https://github.com/whoppps
+// @version      2024-07-29
+// @description  A browser script made to give enhancements on miniblox.io
+// @author       whoppps
+// @match        https://miniblox.io/*
+// @icon         https://miniblox.io/favicon.png
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        unsafeWindow
+// @run-at       document-start
+// ==/UserScript==
 
-      const blob = new Blob([scriptContent], { type: 'text/javascript' });
-      const url = URL.createObjectURL(blob);
-      window.location.href = url;
-    });
-  </script>
-</body>
-</html>
+(function() {
+    'use strict';
+
+    async function execute(url, oldScript) {
+        if (oldScript) oldScript.type = 'javascript/blocked';
+        let data = await fetch("https://raw.githubusercontent.com/whoppps/Vape-V4-For-Miniblox-Fixed/refs/tags/v1.8/injection.js").then(e => e.text());
+        if (oldScript) oldScript.type = 'module';
+        eval(data.replace("scripturl", url));
+        // Set the flag on the actual page's window object.
+        unsafeWindow.__vapeInstalled__ = true;
+    }
+
+    // For Firefox, intercept scripts before execution.
+    if (navigator.userAgent.indexOf("Firefox") !== -1) {
+        window.addEventListener("beforescriptexecute", function(e) {
+            if (e.target.src.includes("https://miniblox.io/assets/index")) {
+                e.preventDefault();
+                e.stopPropagation();
+                execute(e.target.src);
+            }
+        }, false);
+    } else {
+        // For other browsers, use a MutationObserver to detect when the target script is added.
+        new MutationObserver(async (mutations, observer) => {
+            let oldScript = mutations
+                .flatMap(e => [...e.addedNodes])
+                .filter(e => e.tagName === 'SCRIPT')
+                .find(e => e.src.includes("https://miniblox.io/assets/index"));
+
+            if (oldScript) {
+                observer.disconnect();
+                execute(oldScript.src, oldScript);
+            }
+        }).observe(document, {
+            childList: true,
+            subtree: true,
+        });
+    }
+})();
